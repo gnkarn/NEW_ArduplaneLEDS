@@ -1,0 +1,11 @@
+{
+  "C_Cpp.dimInactiveRegions": true,
+  "C_Cpp.inactiveRegionBackgroundColor": "gray",
+  "C_Cpp.formatting": "vcFormat",
+  "C_Cpp.vcFormat.indent.caseLabels": true,
+  "C_Cpp.vcFormat.indent.accessSpecifiers": true,
+  "C_Cpp.vcFormat.indent.withinParentheses": "indent",
+  "C_Cpp.clang_format_fallbackStyle": "LLVM",
+  "C_Cpp.clang_format_style": "Visual Studio",
+  "C_Cpp.vcFormat.indent.preprocessor": "oneLeft"
+}
