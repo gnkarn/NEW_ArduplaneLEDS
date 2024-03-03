@@ -89,7 +89,7 @@ int ap_rssi;
     {GPS, BACK, BACK, BACK, BACK, BACK, BACK, ARMED, FLASH, FLASH},
     {GPS, BACK, BACK, BACK, BACK, BACK, BACK, ARMED, FLASH, FLASH} }; */
 const byte LED_DEF[NUM_ARMS][NUM_LEDS_PER_STRIP] PROGMEM = {
-    {GPS, GPS, FRONT, FRONT, FLASH } };
+    {ARMED, GPS, GPS, FRONT, FLASH } };
 
 bool motorsArmed(void);  //
 void copter_leds_oscillate(void);
@@ -119,8 +119,7 @@ void Teensy_LED_Init() {  // comment in SIMULATION_MODE
                       // FastLED.addLeds<APA102, 6, 7,
                       // RGB,DATA_RATE_MHZ(12)>(leds[0], NUM_LEDS_PER_STRIP);
                       // // HABILITAR PARA APA
-// FastLED.addLeds<APA102, DATA_PIN, CLOCK_PIN, RGB, DATA_RATE_MHZ(12)>(leds,
-// NUM_LEDS);  // DOCUMENTADO PARA apa
+// FastLED.addLeds<APA102, DATA_PIN, CLOCK_PIN, RGB, DATA_RATE_MHZ(12)>(leds,NUM_LEDS);  // DOCUMENTADO PARA apa
   FastLED.setBrightness(BRIGHTNESS);
 #ifdef standalone
   Serial.begin(9600);
@@ -158,7 +157,7 @@ void loop() {  // uncomment in SIMULATION_MODE
 
 void Teensy_LED_process() {  // comment in SIMULATION_MODE ( DEJAR NORMAL)
 #endif
-  Serial.println("Teensy_LED_process ");
+  // Serial.println("Teensy_LED_process ");
   // float dim = 100; // para probar lo paso a global
   currentmillis = millis();
   ap_base_mode_last = ap_base_mode;
@@ -340,7 +339,7 @@ void Teensy_LED_process() {  // comment in SIMULATION_MODE ( DEJAR NORMAL)
     }
     // ThrotleLed (int brazo , int posicion, int LedsNum, int hue, float dim  )
     // ThrotleLed (0, 2, 13, 200,  dim  );
-
+  get_gps_status(ON, dim); // lo agrego para TEST 
   update_copter_leds();  // update motors and gps leds
   FastLED.show();
   lastmillis = currentmillis;

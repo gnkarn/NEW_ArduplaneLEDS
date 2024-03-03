@@ -92,7 +92,7 @@ bool telemetry_initialized = 0;  // Is FrSkySPort Telemetry initialized
 // CRGB Vir_led[NUM_LEDS]     ;                      // simula una tira continua
 // con todos los leds de cada brazo conectados en serie
 #define BRIGHTNESS 96
-#define DATA_PIN 5  // pin D5
+#define DATA_PIN  5 //  pin D5
 
 // CRGB leds[NUM_ARMS][NUM_LEDS_PER_STRIP]; //
 CRGB leds[NUM_LEDS];  //
@@ -332,6 +332,22 @@ int dir = RIGHT;
  *
  * ========================================================================
 */
+/*
+*===========================================================================
+*
+* Mavlink Adapted for TEENSY
+** Connection GNK
+* ---------------------------------- -
+* pin 9 y 10 APM telemetry-- > RX2/TX2
+* pin 13 -- > MAvlink led interno
+* pin2--->gbled, green arduino front
+* Pin 23  -- > Frontled
+* Pin 11 -- > BAckled
+* PIN 6  -- > 2812 led  Data
+* PIN 8 -- > Al Rx HB - 02 (vde) for debug using arduino monitor on mac@
+*
+* ========================================================================
+*/
 
 /// GPS status codes
 enum GPS_Status {
@@ -369,12 +385,13 @@ enum GPS_Status {
  * *******************************************************
  */
 // *** DEBUG MAVLink Messages:
-#define DEBUG_APM_MAVLINK_MSGS              // *Show all messages received
+// #define DEBUG_APM_MAVLINK_MSGS              // *Show all messages received
 // from APM #define DEBUG_APM_CONNECTION #define DEBUG_APM_CONNECTION1 // *lo
 // uso en lugar del anterior para reducir uso de memoria #define
 // DEBUG_APM_HEARTBEAT                 // * MSG #0 #define DEBUG_APM_SYS_STATUS
 // // *MSG #1   - not used -> use: DEBUG_APM_BAT #define DEBUG_APM_BAT // Debug
-// Voltage and Current received from APM #define DEBUG_APM_GPS_RAW // *MSG #24
+// Voltage and Current received from APM 
+#define DEBUG_APM_GPS_RAW // *MSG #24
 // #define DEBUG_APM_RAW_IMU                   // MSG #27  - not used -> use:
 // DEBUG_APM_ACC #define DEBUG_APM_ACC                       // Debug
 // Accelerometer #define DEBUG_APM_ATTITUDE                  // *MSG #30 #define
@@ -385,7 +402,7 @@ enum GPS_Status {
 // #define DEBUG_APM_PARSE_STATUSTEXT
 // #define DEBUG_GIMBAL_HEARTBEAT
 // #define DEBUG_OTHER_HEARTBEAT
-#define DEBUG_APM_CONNECTION1
+// #define DEBUG_APM_CONNECTION1
 // *** DEBUG FrSkySPort Telemetry:
 // #define DEBUG_FrSkySportTelemetry
 // #define DEBUG_FrSkySportTelemetry_FAS
@@ -404,8 +421,8 @@ enum GPS_Status {
 
 #define hbLed  LED_BUILTIN /* Heartbeat LED if any, default arduino board has a LED onboard tied to \
        pin 13. uso el D2 int11 pues el led interno se usa en SPI */
-#define frontled 9  // digital pin 9 para pwm (puede usarse pin 3,5,6,9,10,11)
-#define backled 10  // digital pin 10
+#define frontled A9  // TEENSY digital pin A9 para pwm //NANO digital pin 9 para pwm (puede usarse pin 3,5,6,9,10,11)
+#define backled A8  // digital pin 10
 #define GpsLed 6    // digital pin 6 GPS status
 #define motorsLedLeft 4
 #define motorsLedRight 3
@@ -495,8 +512,6 @@ void setup() {
   // bluetooth serial
   // debugSerial.begin(9600);// debugSerialBaud
 
-
-
   Serial.begin(115200);// Inicializar la comunicación serie del USB 
   Serial2.begin(57600);// Inicializar la comunicación serie para mavlink
 
@@ -512,8 +527,8 @@ void setup() {
 
 
 // Enviar el mensaje "listo" al completar el setup
-// Serial.println("Setup de arduplane leds iniciado ");
-// Parpadeo del LED durante dos segundos
+  Serial.println("Setup de arduplane leds iniciado ");
+ // Parpadeo del LED durante dos segundos
   for (int i = 0; i < 10; i++) {
     digitalWrite(ledPin, HIGH);  // Encender el LED
     delay(200);                  // Esperar 0.5 segundos
@@ -526,7 +541,7 @@ void setup() {
     // Realizar cualquier otra configuración necesaria
     // ...
 
-  pinMode(hbLed, OUTPUT);  // salida de hbled uso el A3 Pcint 11 pues el 13 es SCK, heart bit
+  pinMode(hbLed, OUTPUT);  // pin13 en teensy// nano salida de hbled uso el A3 Pcint 11 pues el 13 es SCK, heart bit
 #ifdef USE_TEENSY_LED_SUPPORT
   Teensy_LED_Init();  // Init LED Controller
 #endif
@@ -534,11 +549,11 @@ void setup() {
   Mavlink_setup();  // Init Mavlink
   // ..DPN(F("MAv2led monitor Nano"));
 
-  LedInit(frontled);  // front led gnk init
+  LedInit(frontled);  // front led gnk init son salidas analogicas para manejar con ULN2003
   LedInit(backled);
   LedInit(motorsLedLeft);   // motors left Led
   LedInit(motorsLedRight);  // motors right leds
-  LedInit(GpsLed);          // motors right leds
+  LedInit(GpsLed);          // 
 
   Serial.print("Fin de Setup");
   // .. DPN(F("Fin de Setup"));
@@ -558,9 +573,9 @@ void loop() {
   if (MavLink_Connected == 1) {  // If we have a valid MavLink Connection
                                  // if ((mavlink_active)) digitalWrite(hbLed,
                                  // ioCounter == 1 ? HIGH : LOW);
-    leds[1] = (((millis() % 250) >= 200)
+    leds[0] = (((millis() % 250) >= 200)
       ? CRGB::White
-      : 0);  // El led uno titila si mavlink_activo era led 1
+      : 0);  // El led cero  titila si mavlink_activo era led 1
     vled_draw();
     Teensy_LED_process();  // Process LED-Controller
     }
