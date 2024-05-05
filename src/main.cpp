@@ -556,7 +556,10 @@ void setup() {
   LedInit(GpsLed);          // 
 
   Serial.print("Fin de Setup");
+  delay(3000);
+   
   // .. DPN(F("Fin de Setup"));
+ 
   }
 
   /*
