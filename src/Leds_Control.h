@@ -114,12 +114,12 @@ void Teensy_LED_Init() {  // comment in SIMULATION_MODE
   // //Left front arm FastLED.addLeds<WS2812B,DATA_PIN+1,RGBORDER>(leds[1],
   // NUM_LEDS_PER_STRIP);  //Left front arm
   Serial.println("Teensy_LED_Init");
-  FastLED.addLeds<WS2812B, DATA_PIN, RGBORDER>(
-    leds, NUM_LEDS);  //
+  // FastLED.addLeds<WS2812B, DATA_PIN, RGBORDER>(leds, NUM_LEDS);  //
                       // FastLED.addLeds<APA102, 6, 7,
                       // RGB,DATA_RATE_MHZ(12)>(leds[0], NUM_LEDS_PER_STRIP);
                       // // HABILITAR PARA APA
 // FastLED.addLeds<APA102, DATA_PIN, CLOCK_PIN, RGB, DATA_RATE_MHZ(12)>(leds,NUM_LEDS);  // DOCUMENTADO PARA apa
+  FastLED.addLeds<LEDTYPE, STRIP_1_DATA_PIN, STRIP_1_CLOCK_PIN, RGB>(leds, NUM_LEDS); // wemos32
   FastLED.setBrightness(BRIGHTNESS);
 #ifdef standalone
   Serial.begin(9600);
@@ -517,7 +517,36 @@ void get_mode() {
    *  7         FLIP
    *  8         AUTO_TUNE, ...
    *  999       DISARMED
-   *
+
+ nueva definicion de modos
+
+flight modes Value for arduplane	Meaning
+0	Manual
+1	CIRCLE
+2	STABILIZE
+3	TRAINING
+4	ACRO
+5	FBWA
+6	FBWB
+7	CRUISE
+8	AUTOTUNE
+10	Auto
+11	RTL
+12	Loiter
+13	TAKEOFF
+14	AVOID_ADSB
+15	Guided
+17	QSTABILIZE
+18	QHOVER
+19	QLOITER
+20	QLAND
+21	QRTL
+22	QAUTOTUNE
+23	QACRO
+24	THERMAL
+25	Loiter to QLand
+
+for Arducopter :
    *  VALUE  MEANING    LED_MODE
    *  0      Stabilize  1
    *  1      Acro       3
@@ -616,7 +645,7 @@ void get_armed_status(int STATUS, float dim) {
         case 0:
           for (int i = 0; i < NUM_ARMS; i++) {
             for (int j = 0; j < NUM_LEDS_PER_STRIP; j++) {
-              if (pgm_read_byte(&(LED_DEF[i][j])) == ARMED) {
+              if (LED_DEF[i][j] == ARMED) {
                 leds[NUM_LEDS_PER_STRIP * i + j] = CHSV(85, 255, dim);
                 }
               }
@@ -625,7 +654,7 @@ void get_armed_status(int STATUS, float dim) {
         case 1:
           for (int i = 0; i < NUM_ARMS; i++) {
             for (int j = 0; j < NUM_LEDS_PER_STRIP; j++) {
-              if (pgm_read_byte(&(LED_DEF[i][j])) == ARMED) {
+              if (LED_DEF[i][j] == ARMED) {
                 leds[NUM_LEDS_PER_STRIP * i + j] = CHSV(0, 255, dim);
                 }
               }
@@ -634,7 +663,7 @@ void get_armed_status(int STATUS, float dim) {
         default:
           for (int i = 0; i < NUM_ARMS; i++) {
             for (int j = 0; j < NUM_LEDS_PER_STRIP; j++) {
-              if (pgm_read_byte(&(LED_DEF[i][j])) == ARMED) {
+              if (LED_DEF[i][j] == ARMED) {
                 leds[NUM_LEDS_PER_STRIP * i + j] = CHSV(0, 0, 0);
                 }
               }
@@ -645,7 +674,7 @@ void get_armed_status(int STATUS, float dim) {
   else {
     for (int i = 0; i < NUM_ARMS; i++) {
       for (int j = 0; j < NUM_LEDS_PER_STRIP; j++) {
-        if (pgm_read_byte(&(LED_DEF[i][j])) == ARMED) {
+        if (LED_DEF[i][j] == ARMED) {
           leds[NUM_LEDS_PER_STRIP * i + j] = CHSV(0, 0, 0);
           }
         }
@@ -697,7 +726,7 @@ void get_gps_status(int STATUS, float dim) {
       if (state_GPS == 0) {
         for (int i = 0; i < NUM_ARMS; i++) {
           for (int j = 0; j < NUM_LEDS_PER_STRIP; j++) {
-            if (pgm_read_byte(&(LED_DEF[i][j])) == GPS) {
+            if (LED_DEF[i][j] == GPS) {
               leds[NUM_LEDS_PER_STRIP * i + j] = COLOR;
               }
             }
@@ -707,7 +736,7 @@ void get_gps_status(int STATUS, float dim) {
       else {
         for (int i = 0; i < NUM_ARMS; i++) {
           for (int j = 0; j < NUM_LEDS_PER_STRIP; j++) {
-            if (pgm_read_byte(&(LED_DEF[i][j])) == GPS) {
+            if (LED_DEF[i][j] == GPS) {
               leds[NUM_LEDS_PER_STRIP * i + j] = CHSV(0, 0, 0);
               }
             }
@@ -720,7 +749,7 @@ void get_gps_status(int STATUS, float dim) {
   else {
     for (int i = 0; i < NUM_ARMS; i++) {
       for (int j = 0; j < NUM_LEDS_PER_STRIP; j++) {
-        if (pgm_read_byte(&(LED_DEF[i][j])) == GPS) {
+        if (LED_DEF[i][j] == GPS) {
           leds[NUM_LEDS_PER_STRIP * i + j] = CHSV(0, 0, 0);
           }
         }
@@ -735,7 +764,7 @@ void front_arms(int STATUS, float dim) {
   if (STATUS == 1) {
     for (int i = 0; i < NUM_ARMS; i++) {
       for (int j = 0; j < NUM_LEDS_PER_STRIP; j++) {
-        if (pgm_read_byte(&(LED_DEF[i][j])) == FRONT) {
+        if (LED_DEF[i][j] == FRONT) {
           leds[NUM_LEDS_PER_STRIP * i + j] = CHSV(96, 255, dim);
           }
         }
@@ -744,7 +773,7 @@ void front_arms(int STATUS, float dim) {
   else {
     for (int i = 0; i < NUM_ARMS; i++) {
       for (int j = 0; j < NUM_LEDS_PER_STRIP; j++) {
-        if (pgm_read_byte(&(LED_DEF[i][j])) == FRONT) {
+        if (LED_DEF[i][j] == FRONT) {
           leds[NUM_LEDS_PER_STRIP * i + j] = CHSV(0, 0, 0);
           }
         }
@@ -760,7 +789,7 @@ void front_arms(int STATUS, float dim) {
       if (STATUS == 1) {
           for (int i = 0; i < NUM_ARMS; i++) {
               for (int j = 0; j < NUM_LEDS_PER_STRIP; j++) {
-                  if (pgm_read_byte(&(LED_DEF[i][j])) == SIDE) {
+                  if (LED_DEF[i][j] == SIDE) {
                       leds[i][j] = CHSV(60, 255, 255 * dim);
                   }
               }
@@ -768,7 +797,7 @@ void front_arms(int STATUS, float dim) {
       } else {
           for (int i = 0; i < NUM_ARMS; i++) {
               for (int j = 0; j < NUM_LEDS_PER_STRIP; j++) {
-                  if (pgm_read_byte(&(LED_DEF[i][j])) == SIDE) {
+                  if (LED_DEF[i][j] == SIDE) {
                       leds[i][j] = CHSV(0, 0, 0);
                   }
               }
@@ -783,7 +812,7 @@ void rear_arms(int STATUS, float dim) {
   if (STATUS == 1) {
     for (int i = 0; i < NUM_ARMS; i++) {
       for (int j = 0; j < NUM_LEDS_PER_STRIP; j++) {
-        if (pgm_read_byte(&(LED_DEF[i][j])) == BACK) {
+        if (LED_DEF[i][j] == BACK) {
           leds[NUM_LEDS_PER_STRIP * i + j] = CHSV(0, 255, dim);
           }
         }
@@ -792,7 +821,7 @@ void rear_arms(int STATUS, float dim) {
   else {
     for (int i = 0; i < NUM_ARMS; i++) {
       for (int j = 0; j < NUM_LEDS_PER_STRIP; j++) {
-        if (pgm_read_byte(&(LED_DEF[i][j])) == BACK) {
+        if (LED_DEF[i][j] == BACK) {
           leds[NUM_LEDS_PER_STRIP * i + j] = CHSV(0, 0, 0);
           }
         }
@@ -810,7 +839,7 @@ void flash_pos_light(int STATUS, float dim) {
     uint8_t bright = cubicwave8(beat8(BPM));  // GENERA * 60*1000/bpm MILISECS
     for (int i = 0; i < NUM_ARMS; i++) {
       for (int j = 0; j < NUM_LEDS_PER_STRIP; j++) {
-        if (pgm_read_byte(&(LED_DEF[i][j])) == FLASH) {
+        if (LED_DEF[i][j] == FLASH) {
           // leds[NUM_LEDS_PER_STRIP*i+j] = CHSV(255, 0, bright * dim);
           leds[NUM_LEDS_PER_STRIP * i + j] = CHSV(255, 0, bright);
           }
@@ -820,7 +849,7 @@ void flash_pos_light(int STATUS, float dim) {
   else {
     for (int i = 0; i < NUM_ARMS; i++) {
       for (int j = 0; j < NUM_LEDS_PER_STRIP; j++) {
-        if (pgm_read_byte(&(LED_DEF[i][j])) == FLASH) {
+        if (LED_DEF[i][j] == FLASH) {
           leds[NUM_LEDS_PER_STRIP * i + j] = CHSV(0, 0, 0);
           }
         }
@@ -941,27 +970,30 @@ void vled_draw() {
 
   // test de leds
 void Leds_Test(void) {
-  // Serial.println("Leds_Test");
+  Serial.println("Leds_Test apagaTodo");
   for (int i = 0; i < NUM_LEDS_PER_ARM; i++) {
-    leds[i] = CHSV(0, 255, 80 * i);
+    leds[i] = CHSV(0, 0, 0);
+    FastLED.show();
+    }
+  for (int i = 0; i < 10; i++) {
+    leds[i] = CHSV(0, 0, i);
     FastLED.show();
     FastLED.delay(20);
     }
-  for (int i = 0; i < NUM_LEDS_PER_ARM; i++) {
-    leds[i] = CHSV(85, 255, 80 * i);
+  for (int i = 0; i < 10; i++) {
+    leds[i] = CHSV(0, i, 0);
     FastLED.show();
     FastLED.delay(20);
     }
-  for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = CRGB(254, 0, 0);
+  for (int i = 0; i < 10; i++) {
+    leds[i] = CRGB(i, 0, 0);
     FastLED.show();
-    FastLED.delay(200);
+    FastLED.delay(20);
     }
-  FastLED.clear();
+  FastLED.clear(1);
   FastLED.show();
   Serial.println("FIN Leds_Test");
-  }
-  // fin test de leds
+  } // fin test de leds
 
   // motor leds control . GPS and Motors status analog leds
 void update_copter_leds(void) {  // static void update_copter_leds(void) {

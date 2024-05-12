@@ -13,7 +13,7 @@
 #include <Arduino.h>
 #include <stdint.h>
 #include <FastLED.h>
-#include <avr/pgmspace.h>      // para poder usar progmem
+// #include <avr/pgmspace.h>      // para poder usar progmem
 //#include <SoftwareSerial.h> // serial comm para Bluetooth
 #define USE_TEENSY_LED_SUPPORT  // Enable LED-Controller functionality
 #include <GCS_MAVLink.h>
@@ -21,6 +21,10 @@
 // serial comm para Bluetooth
 //#include <SoftwareSerial.h>
 #define debugSerial Serial //btSerial
+
+#define RXD2 16  // para serial 2 en wemos 32 
+#define TXD2 17
+
 //#define debugSerialBaud 9600
 // SoftwareSerial btSerial(8, 9);  // RX, TX D8 y D9
 #define DPN Serial.println //imprime en el puerto del usb, es tambien el de telemetria
@@ -64,6 +68,36 @@ int LED_DIMM_CHAN;
 #define LED_BPM_CHAN 14   // Channel Number of RC Channel used for LED BPM
 #endif
 
+#define ESP32
+// defines for wemos D132 R2 
+#ifdef ESP32
+#define A0 2 // not reliable
+#define A1 4 // not reliable
+#define A2 35 // connect to 10k resistor at 3.3V! all unsused analog pins
+#define A3 34 
+#define A4 36
+#define A5 39
+#define A6 32 // no pin access
+#define A7 33 // no pin access
+#define D2 26
+#define D3 25
+#define D4 7
+#define D5 16
+#define D6 17
+#define D7 14
+#define D8 12
+#define D9 13
+#define D10 5
+#define D11 23
+#define D12 19
+#define D13 18
+
+#define STRIP_1_DATA_PIN 23 // wemos32
+#define STRIP_1_CLOCK_PIN 19
+#endif
+
+
+
 /*
  * *******************************************************
  * *** Variables needed for Mavlink Connection Status  ***
@@ -81,18 +115,19 @@ bool telemetry_initialized = 0;  // Is FrSkySPort Telemetry initialized
 // antes en led_control.ino
 
 #define RGBORDER GRB  // BRG para 2811, GRB para 2812
-#define LEDTYPE WS2812B
-
+// #define LEDTYPE WS2812B
+#define LEDTYPE APA102
 #define NUM_ARMS 1 //4
 #define NUM_LEDS_PER_STRIP 5  // 10
 #define BRIGHTNESS 96
 #define FRAMES_PER_SECOND 30
-#define NUM_LEDS_PER_ARM 5// 10 , cambiar la definicion de  LED_DEF
+#define NUM_LEDS_PER_ARM 144 // 10 , cambiar la definicion de  LED_DEF
 #define NUM_LEDS NUM_LEDS_PER_ARM *NUM_ARMS  // Number of LED's
 // CRGB Vir_led[NUM_LEDS]     ;                      // simula una tira continua
 // con todos los leds de cada brazo conectados en serie
-#define BRIGHTNESS 96
-#define DATA_PIN  5 //  pin D5
+#define BRIGHTNESS 50 // setear en 96 , 50 para debug
+//  #define DATA_PIN  5 //  pin D5
+
 
 // CRGB leds[NUM_ARMS][NUM_LEDS_PER_STRIP]; //
 CRGB leds[NUM_LEDS];  //
@@ -418,14 +453,14 @@ enum GPS_Status {
 // #define DEBUG_AVERAGE_VOLTAGE
 // #define DEBUG_LIPO_SINGLE_CELL_MONITOR // Use this only with enabled
 // USE_SINGLE_CELL_MONITOR
-
+// #define USE_LEDS_ANALOGICOS // TODO: HABILITAR SI ESTAN CONFIGURADOS
 #define hbLed  LED_BUILTIN /* Heartbeat LED if any, default arduino board has a LED onboard tied to \
        pin 13. uso el D2 int11 pues el led interno se usa en SPI */
-#define frontled A9  // TEENSY digital pin A9 para pwm //NANO digital pin 9 para pwm (puede usarse pin 3,5,6,9,10,11)
-#define backled A8  // digital pin 10
+#define frontled A3  // TEENSY digital pin A9 para pwm //NANO digital pin 9 para pwm (puede usarse pin 3,5,6,9,10,11)
+#define backled A2  // A8 digital pin 10 teensy
 #define GpsLed 6    // digital pin 6 GPS status
-#define motorsLedLeft 4
-#define motorsLedRight 3
+#define motorsLedLeft 4  // 4 
+#define motorsLedRight 3 // 3
 
 // #####################################################################################################
 // ### DEFAULT VARIABLES ###
@@ -513,8 +548,8 @@ void setup() {
   // debugSerial.begin(9600);// debugSerialBaud
 
   Serial.begin(115200);// Inicializar la comunicación serie del USB 
-  Serial2.begin(57600);// Inicializar la comunicación serie para mavlink
-
+  // Serial2.begin(57600);// Inicializar la comunicación serie para mavlink
+  Serial2.begin(57600, SERIAL_8N1, RXD2, TXD2);   // Initialise Serial2 port at 57600bps
 /*   while (!Serial) {
     // Esperar a que la comunicación serie se establezca
     // piscar led
@@ -540,7 +575,6 @@ void setup() {
   Serial.println("DEBUG");
     // Realizar cualquier otra configuración necesaria
     // ...
-
   pinMode(hbLed, OUTPUT);  // pin13 en teensy// nano salida de hbled uso el A3 Pcint 11 pues el 13 es SCK, heart bit
 #ifdef USE_TEENSY_LED_SUPPORT
   Teensy_LED_Init();  // Init LED Controller
@@ -548,19 +582,20 @@ void setup() {
 
   Mavlink_setup();  // Init Mavlink
   // ..DPN(F("MAv2led monitor Nano"));
-
+  // TODO : HABILITAR SALIDAS PARA LED ANALOGICOS
+#ifdef USE_LEDS_ANALOGICOS
   LedInit(frontled);  // front led gnk init son salidas analogicas para manejar con ULN2003
   LedInit(backled);
   LedInit(motorsLedLeft);   // motors left Led
   LedInit(motorsLedRight);  // motors right leds
   LedInit(GpsLed);          // 
-
-  Serial.print("Fin de Setup");
+#endif
+  Serial.print("Fin de Setup , inicio de Loop");
   delay(3000);
-   
+
   // .. DPN(F("Fin de Setup"));
- 
-  }
+
+  } // SetupEnd
 
   /*
    * *******************************************************
@@ -587,9 +622,8 @@ void loop() {
       150);  // if mavlink not connected put leds in a default state
     LEDS.show();
     }
-
-  FrontFlash(
-    64, 255);  //  hace titilar el led flash de frente GNK cambiar 255 por dim
+#ifdef USE_LEDS_ANALOGICOS
+  FrontFlash(64, 255);  //  hace titilar el led flash de frente GNK cambiar 255 por dim
                // EVERY_N_MILLISECONDS(500)
                // {digitalWrite(hbLed,!digitalRead(hbLed));  } //Blink(boolean
                // LedActivo,byte LedPin , uint8_t Ton)
@@ -603,6 +637,7 @@ void loop() {
   GenericFlash(backled, 32, 160, 60, 256);  // flash del led  trasero
   // GenericFlash(13, 50, 160, 60, 200); // flash de mavlink para pruebas ,
   // normalmente debe parpadear cuando se establece la coneccion
+#endif  
   }
   // ====================================================================================================
   // put function definitions here:

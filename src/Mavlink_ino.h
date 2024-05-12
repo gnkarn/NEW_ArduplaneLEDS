@@ -396,7 +396,8 @@ void _MavLink_receive() {
     uint8_t c = _MavLinkSerial.read();
     //if (c==254)
     //{
-    Serial.println(c);// DEBUG only 
+    Serial.print(c);// DEBUG only 
+    Serial.print(" / ");
         //}
 
         //bool flag = mavlink_parse_char(MAVLINK_COMM_0, c, &msg, &status); // solo para debug
@@ -435,7 +436,7 @@ void _MavLink_receive() {
            * *****************************************************
            */
           case MAVLINK_MSG_ID_HEARTBEAT:
-            ap_base_mode = (mavlink_msg_heartbeat_get_base_mode(&msg) & 0x80) > 7;
+            ap_base_mode = (mavlink_msg_heartbeat_get_base_mode(&msg) & MAV_MODE_FLAG_DECODE_POSITION_SAFETY) > 7;
             ap_custom_mode = mavlink_msg_heartbeat_get_custom_mode(&msg);
             ap_mavlink_version = mavlink_msg_heartbeat_get_mavlink_version(&msg);
             ap_system_status = mavlink_msg_heartbeat_get_system_status(&msg);
